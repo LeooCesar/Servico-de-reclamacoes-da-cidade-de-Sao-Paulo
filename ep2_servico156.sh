@@ -14,8 +14,11 @@ echo "+++++++++++++++++++++++++++++++++++++++"
 function downloadFIles {
 #parametro : url do arquivo
 #essa funcao baixa os arquivos da url de entrada e faz a transformacao para utf-8
+    if [ ! -e dados/ ];then
+        mkdir "dados"
+    fi
     mkdir "dadostem"
-    mkdir "dados"
+    
     cat $1 | parallel -k "wget -nv {} -P dadostem/" #baixa os arquivos e coloca na pasta data
     for file in $( ls dadostem); do
         iconv -f ISO-8859-1 -t UTF8 dadostem/$file -o dados/$file
@@ -38,9 +41,7 @@ if [ $# -eq 1 ]; then
         #se existir o arquido das urls
 
 
-
         downloadFIles $1
-
 
         #concatena o conteudo de todos arquivos no arquivo compelto
         if [ -e dados/arquivocompleto.csv ]; then
@@ -51,17 +52,8 @@ if [ $# -eq 1 ]; then
         
         mv arquivocompleto.csv dados/
 
-
-
-
-
-
-    
     else 
-    echo "ERRO : o arquivo ${1} não existe"
-    
-    
-    
+        echo "ERRO : o arquivo ${1} não existe"
     fi   
     
     
@@ -72,13 +64,14 @@ if [ $# -eq 1 ]; then
 
 
 elif [ $# -eq 0 ]; then
-    echo "entra na interface com os arquivos atuais"
 
- 
-
-else echo "argumentos inesperados"
-
-
+    if [ -e dados/arquivocompleto.csv ]; then
+        echo "entra na interface com os arquivos atuais"
+    else 
+        echo "ERRO : Não há dados baixados"
+        echo "Para baixar os dados antes de gerar as estátísticas, use:"
+        echo "./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
+    fi
 
 fi
 
