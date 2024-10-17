@@ -43,6 +43,23 @@ echo "${arrayfilters[*]}"
 
 }
 
+function showcompliments {
+#essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
+
+
+}
+
+
+
+function avarageduration {
+
+#Mostra o tempo de duração médio de uma reclamação em dias
+
+
+
+
+}
+
 
 
 
