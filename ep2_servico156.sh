@@ -7,7 +7,28 @@ OPTIONS=(selecionar_arquivo adicionar_filtro_coluna limpar_filtros_colunas mostr
 filterCount=0 #quantidade de filtro implementados
 
 #arquivo atual que estamos trabalhando,quando mudar de arq precisa ser atualizada
-actualFile=arquivofinal3tri2023.csv 
+actualFile=arquivocompleto.csv 
+
+
+
+function createFilterData {
+#essa funcao cria a pasta filter, se nao existir, e coloca o conteudo do actualFile no arquivo f.csv
+
+if [ ! -e filter ]; then
+    mkdir filter
+fi
+
+cat dados/$actualFile > filter/f.csv
+
+
+}
+
+
+
+
+
+
+
 
 
 function setFilter {
@@ -116,22 +137,22 @@ echo "${arrayfilters[*]}"
 
 }
 
-function showcompliments {
-#essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
+# function showcompliments {
+# #essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
 
 
-}
-
-
-
-function avarageduration {
-
-#Mostra o tempo de duração médio de uma reclamação em dias
+# }
 
 
 
+# function avarageduration {
 
-}
+# #Mostra o tempo de duração médio de uma reclamação em dias
+
+
+
+
+# }
 
 
 
@@ -169,7 +190,7 @@ function downloadFIles {
 
 
 makeHeader
-
+#++++++++++++++MAIN++++++++++++++++++++=
 if [ $# -eq 1 ]; then
     #ENTRA AQUI QUANDO RODAMOS O SCRIPT COM ARGUMENTO
    
@@ -187,6 +208,9 @@ if [ $# -eq 1 ]; then
         ls dados | parallel -k cat dados/{}>arquivocompleto.csv
         
         mv arquivocompleto.csv dados/
+
+
+        createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
 
     else 
         #SE NAO EXISTIR O ARQUIVO DAS URLS
@@ -214,7 +238,7 @@ elif [ $# -eq 0 ]; then
         echo "Para baixar os dados antes de gerar as estátísticas, use:"
         echo "./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
     fi
-
+fi
 
 
 
