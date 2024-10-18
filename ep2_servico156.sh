@@ -8,7 +8,23 @@ COLUMNS=("Data de abertura" Canal Tema Assunto Serviço Logradouro Número CEP S
 filterCount=0 #quantidade de filtro implementados
 
 #arquivo atual que estamos trabalhando,quando mudar de arq precisa ser atualizada
-actualFile=arquivofinal3tri2023.csv
+actualFile=arquivocompleto.csv 
+
+
+
+function createFilterData {
+
+if [ ! -e filter ]; then
+#essa funcao cria a pasta filter, se nao existir, e coloca o conteudo do actualFile no arquivo f.csv
+    mkdir filter
+fi
+
+cp dados/$actualFile filter/f.csv
+
+
+}
+
+
 
 
 function setFilter {
@@ -24,23 +40,28 @@ grep $1 filter/f.csv > temp.csv && mv temp.csv filter/f.csv #ira selecionar as l
 
 arrayfilters[$filterCount]="$2 = $1" #esse array armazena quais filtros estão ativos no arquivo atual, quando mudar de arquivo precisamos zerar essa variavel
 let filterCount=$filterCount+1 #quando mudar de arquivo precisamos zerar essa variavel
-
+echo " "
 echo "+++ Adicionando filtro: $2 = $1"
 echo "+++ Arquivo atual: ${actualFile}"
 echo "+++ Filtros atuais:"
 echo "${arrayfilters[*]}"
+echo "+++ Número de reclamações: $(cat filter/f.csv | wc -l  )"  
+echo "+++++++++++++++++++++++++++++++++++++++"
 }
 
 function cleanAllFilters {
 #essa função limpa todos filtros selecionados
 
 cat dados/$actualFile > filter/f.csv #reseto o arquivo f.csv
+
 arrayfilters=() #zerando o arrayfilters
 let filterCount=0 #zerando essa variavel
+echo " "
 echo "+++ Filtros removidos"
 echo "+++ Arquivo atual: ${actualFile}"
-echo "+++ Filtros atuais:"
-echo "${arrayfilters[*]}"
+echo "+++ Número de reclamações: $(tail -n+2 filter/f.csv | wc -l  )"  
+echo "+++++++++++++++++++++++++++++++++++++++"
+
 
 
 }
@@ -61,6 +82,8 @@ select option in "${OPTIONS[@]}"; do
 
 done
 }
+
+
 
 function interface_1 {
 #essa funcao cria uma interface com as opções de arquivos para serem selecionados
@@ -115,42 +138,59 @@ done
 filterCount=0 #quantidade de filtro implementados
 
 #arquivo atual que estamos trabalhando,quando mudar de arq precisa ser atualizada
-actualFile=arquivofinal3tri2023.csv 
+actualFile=arquivocompleto.csv 
 
 
-function setFilter {
 
-#argumento1 : filtro que queremos aplicar ex:(coluba :qualidade de atendimento , filtro : boa)
-#argumento2 : coluna que queremos aplicar o filtro
-#coloca um filtro na coluna
-grep $1 filter/f.csv > temp.csv && mv temp.csv filter/f.csv #ira selecionar as linhas do arquivo f.csv que possuem o filtro selecionado, mandar para um arquivo temporario e dps colocar o conteudo do arq temporario em f.csv
 
-#OBS : a pasta filter e o arquivo f.csv deverao ser criados logo apos o arquivo de trabalho ser selecionando
-# o arquivo f.csv devera ser uma copia do arquivo selecionado
-# quando mudarmos de arquivo o arquivo f.csv precisa ser att
 
-arrayfilters[$filterCount]="$2 = $1" #esse array armazena quais filtros estão ativos no arquivo atual, quando mudar de arquivo precisamos zerar essa variavel
-let filterCount=$filterCount+1 #quando mudar de arquivo precisamos zerar essa variavel
+ function showcomplimentsrank {
+    #essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
+    # $1 = numero da coluna que queremos mostrar o top 5 de recamacoes
+     #quantidade linhas das reclamções acumuladas
+    IFSOLD=$IFS
+    echo " "
+    echo "+++ Serviço com mais reclamações:"    
+    local counter=1
+IFS='
+'  
+    for line in $( cat filter/f.csv | tail -n +2 | cut -d";" -f"$1" | sort | uniq -c | sort -n -r );do
+        if [ $counter -gt 5 ]; then 
+            break
+        fi
 
-echo "+++ Adicionando filtro: $2 = $1"
-echo "+++ Arquivo atual: ${actualFile}"
-echo "+++ Filtros atuais:"
-echo "${arrayfilters[*]}"
+        echo $line
+
+        let counter=$counter+1
+    done
+    echo "+++++++++++++++++++++++++++++++++++++++"    
+
+    IFS=$IFSOLD
+ }
+
+function showcompliments {
+    #essa funcao mostra todas reclamacoes do arquivo atual
+    if [ ${#arrayfilters[*]} -gt 0 ]; then #se tem filtro quer dizer q a primeira linha nao representa as colunas
+        cat filter/f.csv
+    else tail -n+2 filter/f.csv
+    fi
+    
+    echo "+++ Arquivo atual : $actualFile"
+    echo "+++ Filtros atuais:"
+    echo "${arrayfilters[*]}"
+    echo "+++ Número de reclamações: $(cat filter/f.csv | wc -l  )"  
+    echo "+++++++++++++++++++++++++++++++++++++++"
 }
 
-function cleanAllFilters {
-#essa função limpa todos filtros selecionados
 
-cat dados/$actualFile > filter/f.csv #reseto o arquivo f.csv
-arrayfilters=() #zerando o arrayfilters
-let filterCount=0 #zerando essa variavel
-echo "+++ Filtros removidos"
-echo "+++ Arquivo atual: ${actualFile}"
-echo "+++ Filtros atuais:"
-echo "${arrayfilters[*]}"
+# function avarageduration {
+
+# #Mostra o tempo de duração médio de uma reclamação em dias
 
 
-}
+
+
+# }
 
 
 
@@ -205,6 +245,9 @@ if [ $# -eq 1 ]; then
         
         mv arquivocompleto.csv dados/
 
+
+        createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
+
     else 
         #SE NAO EXISTIR O ARQUIVO DAS URLS
         echo "ERRO : o arquivo ${1} não existe"
@@ -220,11 +263,18 @@ elif [ $# -eq 0 ]; then
 
     if [ -e dados/arquivocompleto.csv ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
-        echo "entra na interface com os arquivos atuais"
-        setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
-        setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
-        cleanAllFilters #LIMPA TODOS FILTROS
-        setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
+
+
+         createFilterData
+         echo "entra na interface com os arquivos atuais"
+        
+        setFilter CHATBOT "CANAL" #adiciona o filtro CHATBOT na coluna Canal
+        showcompliments
+        cleanAllFilters
+        #  setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
+        #  cleanAllFilters #LIMPA TODOS FILTROS
+        #  setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
+
 
     else 
         echo "ERRO : Não há dados baixados"
