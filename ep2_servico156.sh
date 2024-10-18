@@ -63,6 +63,7 @@ local DIRETORIO="dados"
 echo "Escolha uma opção de arquivo:"
 select ARQ in "$DIRETORIO"/*; do
     LINHAS=$(wc -l < "$ARQ")
+    actualFile=$ARQ
     echo +++ Arquivo atual: $ARQ 
     echo +++ Número de reclamações: $LINHAS
     echo +++++++++++++++++++++++++++++++++++++++
