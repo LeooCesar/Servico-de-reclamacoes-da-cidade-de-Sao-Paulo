@@ -12,13 +12,13 @@ actualFile=arquivocompleto.csv
 
 
 function createFilterData {
-#essa funcao cria a pasta filter, se nao existir, e coloca o conteudo do actualFile no arquivo f.csv
 
 if [ ! -e filter ]; then
+#essa funcao cria a pasta filter, se nao existir, e coloca o conteudo do actualFile no arquivo f.csv
     mkdir filter
 fi
 
-cat dados/$actualFile > filter/f.csv
+cp dados/$actualFile filter/f.csv
 
 
 }
@@ -100,7 +100,7 @@ done
 filterCount=0 #quantidade de filtro implementados
 
 #arquivo atual que estamos trabalhando,quando mudar de arq precisa ser atualizada
-actualFile=arquivofinal3tri2023.csv 
+actualFile=arquivocompleto.csv 
 
 
 function setFilter {
@@ -227,11 +227,17 @@ elif [ $# -eq 0 ]; then
 
     if [ -e dados/arquivocompleto.csv ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
-        echo "entra na interface com os arquivos atuais"
-        setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
-        setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
-        cleanAllFilters #LIMPA TODOS FILTROS
-        setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
+
+
+
+        
+
+         createFilterData
+         echo "entra na interface com os arquivos atuais"
+         setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
+         setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
+         cleanAllFilters #LIMPA TODOS FILTROS
+         setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
 
     else 
         echo "ERRO : Não há dados baixados"
