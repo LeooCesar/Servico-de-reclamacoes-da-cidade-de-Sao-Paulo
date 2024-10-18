@@ -12,7 +12,7 @@ actualFile=arquivofinal3tri2023.csv
 
 function setFilter {
 
-#argumento1 : filtro que queremos aplicar ex:(coluba :qualidade de atendimento , filtro : boa)
+#argumento1 : filtro que queremos aplicar ex:(coluna :qualidade de atendimento , filtro : boa)
 #argumento2 : coluna que queremos aplicar o filtro
 #coloca um filtro na coluna
 grep $1 filter/f.csv > temp.csv && mv temp.csv filter/f.csv #ira selecionar as linhas do arquivo f.csv que possuem o filtro selecionado, mandar para um arquivo temporario e dps colocar o conteudo do arq temporario em f.csv
