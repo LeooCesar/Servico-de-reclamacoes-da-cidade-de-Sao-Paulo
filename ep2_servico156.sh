@@ -146,13 +146,15 @@ function setFilter {
 #coloca um filtro na coluna
 grep $1 filter/f.csv > temp.csv && mv temp.csv filter/f.csv #ira selecionar as linhas do arquivo f.csv que possuem o filtro selecionado, mandar para um arquivo temporario e dps colocar o conteudo do arq temporario em f.csv
 
+
+
 #OBS : a pasta filter e o arquivo f.csv deverao ser criados logo apos o arquivo de trabalho ser selecionando
 # o arquivo f.csv devera ser uma copia do arquivo selecionado
 # quando mudarmos de arquivo o arquivo f.csv precisa ser att
 
 arrayfilters[$filterCount]="$2 = $1" #esse array armazena quais filtros estão ativos no arquivo atual, quando mudar de arquivo precisamos zerar essa variavel
 let filterCount=$filterCount+1 #quando mudar de arquivo precisamos zerar essa variavel
-
+echo " "
 echo "+++ Adicionando filtro: $2 = $1"
 echo "+++ Arquivo atual: ${actualFile}"
 echo "+++ Filtros atuais:"
@@ -173,11 +175,29 @@ echo "${arrayfilters[*]}"
 
 }
 
-# function showcompliments {
-# #essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
+ function showcompliments {
+    #essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
+    # $1 = numero da coluna que queremos mostrar o top 5 de recamacoes
+     #quantidade linhas das reclamções acumuladas
+    IFSOLD=$IFS
+    echo " "
+    echo "+++ Serviço com mais reclamações:"    
+    local counter=1
+IFS='
+'  
+    for line in $( cat filter/f.csv | tail -n +2 | cut -d";" -f"$1" | sort | uniq -c | sort -n -r );do
+        if [ $counter -gt 5 ]; then 
+            break
+        fi
 
+        echo $line
 
-# }
+        let counter=$counter+1
+    done
+    echo "+++++++++++++++++++++++++++++++++++++++"    
+
+    IFS=$IFSOLD
+ }
 
 
 
@@ -263,15 +283,14 @@ elif [ $# -eq 0 ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
 
 
-
-        
-
          createFilterData
          echo "entra na interface com os arquivos atuais"
-         setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
-         setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
-         cleanAllFilters #LIMPA TODOS FILTROS
-         setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
+        
+        setFilter FINALIZADA "STATUS DA SOLICITAÇÃO" #adiciona o filtro CHATBOT na coluna Canal
+        #  setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
+        #  cleanAllFilters #LIMPA TODOS FILTROS
+        #  setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
+
 
     else 
         echo "ERRO : Não há dados baixados"
