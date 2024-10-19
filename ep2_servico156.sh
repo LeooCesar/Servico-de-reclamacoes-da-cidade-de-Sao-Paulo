@@ -51,6 +51,7 @@ echo "+++ Filtros atuais:"
 echo "${arrayfilters[*]}"
 echo "+++ Número de reclamações: $(cat filter/f.csv | wc -l  )"  
 echo "+++++++++++++++++++++++++++++++++++++++"
+echo ' '
 }
 
 function cleanAllFilters {
@@ -65,7 +66,7 @@ echo "+++ Filtros removidos"
 echo "+++ Arquivo atual: ${actualFile}"
 echo "+++ Número de reclamações: $(tail -n+2 filter/f.csv | wc -l  )"  
 echo "+++++++++++++++++++++++++++++++++++++++"
-
+echo ' '
 
 
 }
@@ -85,16 +86,17 @@ done
 function interface_1 {
 #essa funcao cria uma interface com as opções de arquivos para serem selecionados
 echo "Escolha uma opção de arquivo:"
-select ARQ in $( ls dados/ ); do                    #seleciona um arquivo dentre os baixados na pasta "dados"
-    LINHAS=$(wc -l < "filter/f.csv")                #linhas do arquivo com filtros atual = numero de reclamacoes
-    actualFile="$ARQ"                               #troca para o arquivo selecionado
-    filterCount=0                                   #zera o contador de filtros ao trocarmos de arquivo
-    arrayfilters=()                                 #zera o array de filtros ao trocarmos de arquivo
+select ARQ in $( ls dados/ ); do                                           #seleciona um arquivo dentre os baixados na pasta "dados"
+    actualFile="$ARQ"                                                      #troca para o arquivo selecionado
+    createFilterData
+    LINHAS=$(cat "dados/$actualFile" | tail -n +2 | wc -l )                #linhas do arquivo com filtros atual = numero de reclamacoes
+    filterCount=0                                                          #zera o contador de filtros ao trocarmos de arquivo
+    arrayfilters=()                                                        #zera o array de filtros ao trocarmos de arquivo
     echo +++ Arquivo atual: $ARQ 
     echo +++ Número de reclamações: $LINHAS
     echo +++++++++++++++++++++++++++++++++++++++
     echo ' '
-    interface_inicial                               #volta à interface inicial
+    interface_inicial                                                      #volta à interface inicial
 
 done
 }
@@ -106,7 +108,11 @@ echo "Escolha uma opção de coluna para o filtro:"
 select COLUMN in "${COLUMNS[@]}"; do
     IFSOLD=$IFS                                                                              #salvo o valor de IFS em IFSOLD
     IFS=';'                                                                                  #quero separar os itens por ";" entao altero IFS=';'
-    cat "dados/$actualFile" | tail -n +2 |cut -d"$IFS" -f$REPLY | sort -u  > opcoes.txt      #crio um arquivo "opcoes.txt" onde cada linha é  uma opcao de filtro
+    if [ ${#arrayfilters[*]} -gt 0 ]; then
+        cat "filter/f.csv" |cut -d"$IFS" -f$REPLY | sort -u  > opcoes.txt                    #se tiver filtros, queremos que todas as linhas sejam opções para o usuário
+    else
+        cat "filter/f.csv" | tail -n +2 |cut -d"$IFS" -f$REPLY | sort -u  > opcoes.txt       #se nao tiver filtros, não queremos que a primeira linha seja uma opção para o usuário
+    fi
 IFS='
 '
     i=0
@@ -114,12 +120,14 @@ IFS='
         filters[$i]=$line                           #armazeno as linhas do arquivo "opcoes.txt" em um vetor 
         let i=$i+1
     done
-
+    echo ' '
     echo "Escolha uma opção de valor para "$COLUMN":"
 
     select filter in "${filters[@]}"; do            #select com os itens do vetor, os quais sao as opcoes de filtro
         IFS=$IFSOLD                                 #recupero IFS para operações futuras
-        setFilter $filter $COLUMN                   #call da funcao setFilter passando os parâmetros necessários (filtro desejado e coluna na qual será aplicado)
+        setFilter "$filter" "$COLUMN"               #call da funcao setFilter passando os parâmetros necessários (filtro desejado e coluna na qual será aplicado)
+        filters=()
+        interface_inicial
         
     done  
 
@@ -128,18 +136,22 @@ done
 
 function interface_3 {
 #essa funcao apenas redireciona para a funcao que limpa filtros
-cleanAllFilters
+    cleanAllFilters
+    interface_inicial
 }
 
 function interface_4 {
-    #preciso implementar ainda
+#essa funcao apenas redireciona para a funcao que calcula a média de tempo
+    avarageduration
+    interface_inicial
 }
 
 function interface_5 {
 #essa funcao cria uma interface para o usuário escolher a coluna que deseja analisar. Depois disso, o número da coluna é passado para a funcao showcomplimentsrank
     echo "Escolha uma opção de coluna para análise:"
     select COLUMN in "${COLUMNS[@]}"; do
-    showcomplimentsrank $REPLY
+    showcomplimentsrank $REPLY "$COLUMN"
+    interface_inicial
 
     done
 }
@@ -147,6 +159,7 @@ function interface_5 {
 function interface_6 {
 #essa funcao apenas redireciona para a funcao que mostra todas as reclamações do arquivo atual
     showcompliments
+    interface_inicial
 }
 
 function interface_7 {
@@ -177,7 +190,8 @@ IFS='
 
         let counter=$counter+1
     done
-    echo "+++++++++++++++++++++++++++++++++++++++"    
+    echo "+++++++++++++++++++++++++++++++++++++++"
+    echo '  '    
 
     IFS=$IFSOLD
 }
@@ -263,6 +277,7 @@ echo "Este programa mostra estatísticas do"
 
 echo "Serviço 156 da Prefeitura de São Paulo"
 echo "+++++++++++++++++++++++++++++++++++++++"
+echo ' ' 
 }
 
 function downloadFIles {
@@ -299,12 +314,14 @@ if [ $# -eq 1 ]; then
             rm dados/arquivocompleto.csv
         fi
 
-        ls dados | parallel -k cat dados/{} > arquivocompleto.csv
+        cat AUX.csv > arquivocompleto.csv
+        ls dados | parallel -k "cat dados/{} | tail -n +2 >> arquivocompleto.csv"
         
         mv arquivocompleto.csv dados/
 
 
         createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
+        interface_inicial
 
     else 
         #SE NAO EXISTIR O ARQUIVO DAS URLS
@@ -321,25 +338,7 @@ elif [ $# -eq 0 ]; then
 
     if [ -e dados/arquivocompleto.csv ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
-
-        # createFilterData
-
-         setFilter FINALIZADA "Status da solicitação"
-         showcomplimentsrank 3 "TEMA"
-         cleanAllFilters
-         setFilter "CAMPO LIMPO" "Subprefeitura"
-         setFilter Péssimo "Qualidade Atendimento"
-        avarageduration
-
-        
-        #  echo "entra na interface com os arquivos atuais"
-        
-        # setFilter CHATBOT "CANAL" #adiciona o filtro CHATBOT na coluna Canal
-        # showcompliments
-        #  setFilter SMDHC Orgao #adiciona o filtro SMDHC na coluna Orgao
-        #  cleanAllFilters #LIMPA TODOS FILTROS
-        #  setFilter CHATBOT Canal #adiciona o filtro CHATBOT na coluna Canal
-
+        interface_inicial
 
     else 
         echo "ERRO : Não há dados baixados"
