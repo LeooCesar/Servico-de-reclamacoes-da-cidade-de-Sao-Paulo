@@ -8,7 +8,7 @@ COLUMNS=("Data de abertura" Canal Tema Assunto Serviço Logradouro Número CEP S
 filterCount=0 #quantidade de filtro implementados
 
 #arquivo atual que estamos trabalhando,quando mudar de arq precisa ser atualizada
-actualFile=arquivofinal3tri2022.csv 
+actualFile=arquivocompleto.csv 
 
 
 
@@ -37,8 +37,12 @@ grep "$1" filter/f.csv > temp.csv && mv temp.csv filter/f.csv #ira selecionar as
 #OBS : a pasta filter e o arquivo f.csv deverao ser criados logo apos o arquivo de trabalho ser selecionando
 # o arquivo f.csv devera ser uma copia do arquivo selecionado
 # quando mudarmos de arquivo o arquivo f.csv precisa ser att
-
-arrayfilters[$filterCount]="$2 = $1" #esse array armazena quais filtros estão ativos no arquivo atual, quando mudar de arquivo precisamos zerar essa variavel
+if [ ${#arrayfilters[*]} -gt 0 ]; then
+    #se ja tem filtro add |
+    arrayfilters[$filterCount]="| $2 = $1" #esse array armazena quais filtros estão ativos no arquivo atual, quando mudar de arquivo precisamos zerar essa variavel
+else
+    arrayfilters[$filterCount]="$2 = $1" #esse array armazena quais filtros estão ativos no arquivo atual, quando mudar de arquivo precisamos zerar essa variavel
+fi
 let filterCount=$filterCount+1 #quando mudar de arquivo precisamos zerar essa variavel
 echo " "
 echo "+++ Adicionando filtro: $2 = $1"
@@ -142,10 +146,11 @@ done
 
  function showcomplimentsrank {
     #essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
-    # $1 = numero da coluna que queremos mostrar o top 5 de recamacoes
+    # $1 = numero da coluna que queremos mostrar o top 5 de recamações
+    # s2 = nome da coluna
     IFSOLD=$IFS
     echo " "
-    echo "+++ Tema com mais reclamações:"    
+    echo "+++ $2 com mais reclamações:"    
     local counter=1
 IFS='
 '  
@@ -224,7 +229,6 @@ IFS='
      mediaDias=$( echo "($media / 86400)" | bc) #calculo a média em dias
 
     IFS=$IFSOLD
-    echo ${arraydataparecer[*]}
     echo " "
     echo "+++ Duração média da reclamação: $mediaDias dias"
     echo "+++++++++++++++++++++++++++++++++++++++"
@@ -307,7 +311,7 @@ elif [ $# -eq 0 ]; then
         # createFilterData
 
          setFilter FINALIZADA "Status da solicitação"
-         showcomplimentsrank 3
+         showcomplimentsrank 3 "TEMA"
          cleanAllFilters
          setFilter "CAMPO LIMPO" "Subprefeitura"
          setFilter Péssimo "Qualidade Atendimento"
