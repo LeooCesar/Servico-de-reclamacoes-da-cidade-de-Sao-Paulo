@@ -74,16 +74,9 @@ function interface_inicial {
 #essa funcao cria uma interface e executa um comando de acordo com a opção selecionada pelo usuário
 echo "Escolha uma opção de operação:"
 select option in "${OPTIONS[@]}"; do 
+    echo ' '
+    interface_$REPLY
     
-    if [[ $REPLY -eq 1 ]]; then
-        echo ' '
-        interface_1
-    
-    elif [[ $REPLY -eq 2 ]]; then
-        echo ' '
-        interface_2
-    fi
-
 done
 }
 
@@ -91,9 +84,8 @@ done
 
 function interface_1 {
 #essa funcao cria uma interface com as opções de arquivos para serem selecionados
-local DIRETORIO="dados"
 echo "Escolha uma opção de arquivo:"
-select ARQ in "$DIRETORIO"/*; do                    #seleciona um arquivo dentre os baixados na pasta "dados"
+select ARQ in $( ls dados/ ); do                    #seleciona um arquivo dentre os baixados na pasta "dados"
     LINHAS=$(wc -l < "filter/f.csv")                #linhas do arquivo com filtros atual = numero de reclamacoes
     actualFile="$ARQ"                               #troca para o arquivo selecionado
     filterCount=0                                   #zera o contador de filtros ao trocarmos de arquivo
@@ -110,41 +102,63 @@ done
 function interface_2 {
 #essa funcao cria uma interface com as opções de coluna para o filtro
 echo "Escolha uma opção de coluna para o filtro:"
+
 select COLUMN in "${COLUMNS[@]}"; do
     IFSOLD=$IFS                                                                              #salvo o valor de IFS em IFSOLD
     IFS=';'                                                                                  #quero separar os itens por ";" entao altero IFS=';'
-    cat "dados/$actualFile" | tail -n +2 |cut -d"$IFS" -f$REPLY | sort -u  > kleber.txt      #crio um arquivo "kleber.txt" onde cada linha é  uma opcao de filtro
+    cat "dados/$actualFile" | tail -n +2 |cut -d"$IFS" -f$REPLY | sort -u  > opcoes.txt      #crio um arquivo "opcoes.txt" onde cada linha é  uma opcao de filtro
 IFS='
 '
     i=0
-    for line in $( cat kleber.txt ); do
-        echo $line
-        filters[$i]=$line                           #armazeno as linhas do arquivo "kleber.txt" em um vetor 
+    for line in $( cat opcoes.txt ); do
+        filters[$i]=$line                           #armazeno as linhas do arquivo "opcoes.txt" em um vetor 
         let i=$i+1
     done
 
-    echo "Escolha uma opção de valor para Canal:"
+    echo "Escolha uma opção de valor para "$COLUMN":"
+
     select filter in "${filters[@]}"; do            #select com os itens do vetor, os quais sao as opcoes de filtro
-        if [[ -n $filter ]]; then
-            IFS=$IFSOLD                             #recupero IFS para operações futuras
-            setFilter $filter $COLUMN               #call da funcao setFilter passando os parâmetros necessários (filtro desejado e coluna na qual será aplicado)
-        break
-        fi
+        IFS=$IFSOLD                                 #recupero IFS para operações futuras
+        setFilter $filter $COLUMN                   #call da funcao setFilter passando os parâmetros necessários (filtro desejado e coluna na qual será aplicado)
+        
     done  
 
 done
 }
 
+function interface_3 {
+#essa funcao apenas redireciona para a funcao que limpa filtros
+cleanAllFilters
+}
+
+function interface_4 {
+    #preciso implementar ainda
+}
+
+function interface_5 {
+#essa funcao cria uma interface para o usuário escolher a coluna que deseja analisar. Depois disso, o número da coluna é passado para a funcao showcomplimentsrank
+    echo "Escolha uma opção de coluna para análise:"
+    select COLUMN in "${COLUMNS[@]}"; do
+    showcomplimentsrank $REPLY
+
+    done
+}
+
+function interface_6 {
+#essa funcao apenas redireciona para a funcao que mostra todas as reclamações do arquivo atual
+    showcompliments
+}
+
+function interface_7 {
+#essa funcao finaliza o programa
+    echo "Fim do programa"
+    echo "+++++++++++++++++++++++++++++++++++++++"
+    exit 0
+}
 
 
 
-
-
-
-
-
-
- function showcomplimentsrank {
+function showcomplimentsrank {
     #essa funcao mostra o top 5 valores ,da coluna, com maiores reclamacoes
     # $1 = numero da coluna que queremos mostrar o top 5 de recamações
     # s2 = nome da coluna
@@ -166,7 +180,7 @@ IFS='
     echo "+++++++++++++++++++++++++++++++++++++++"    
 
     IFS=$IFSOLD
- }
+}
 
 function showcompliments {
     #essa funcao mostra todas reclamacoes do arquivo atual
