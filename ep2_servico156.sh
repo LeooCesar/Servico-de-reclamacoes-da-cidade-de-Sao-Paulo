@@ -1,8 +1,17 @@
 
 #!/bin/bash
+##################################################################
+# MAC0216 - Técnicas de Programação I (2024)
+# EP2 - Programação em Bash
+#
+# Nome do(a) aluno(a) 1: Leonardo César da Silva Francisco 
+# NUSP 1: 15468897
+#
+# Nome do(a) aluno(a) 2: Nattan Ferreira da Silva
+# NUSP 2: 15520641
+##################################################################
 
 OPTIONS=(selecionar_arquivo adicionar_filtro_coluna limpar_filtros_colunas mostrar_duracao_media_reclamacao mostrar_ranking_reclamacoes mostrar_reclamacoes sair)
-COLUMNS=("Data de abertura" Canal Tema Assunto Serviço Logradouro Número CEP Subprefeitura Distrito Latitude Longitude "Data do Parecer" "Status da solicitação" Orgão Data Nível "Prazo Atendimento" "Qualidade Atendimento" "Atendeu Solicitação")
 
 #quando mudar de arquivo precisamos a zerar
 filterCount=0 #quantidade de filtro implementados
@@ -105,13 +114,14 @@ function interface_2 {
 #essa funcao cria uma interface com as opções de coluna para o filtro
 echo "Escolha uma opção de coluna para o filtro:"
 
-select COLUMN in "${COLUMNS[@]}"; do
     IFSOLD=$IFS                                                                              #salvo o valor de IFS em IFSOLD
     IFS=';'                                                                                  #quero separar os itens por ";" entao altero IFS=';'
+    read -r -a COLUMNS < <(head -n 1 "dados/arquivocompleto.csv")
+select COLUMN in "${COLUMNS[@]}"; do
     if [ ${#arrayfilters[*]} -gt 0 ]; then
-        cat "filter/f.csv" | cut -d"$IFS" -f"$REPLY" | sort -u  > opcoes.txt                    #se tiver filtros, queremos que todas as linhas sejam opções para o usuário
+        cat "filter/f.csv" | cut -d"$IFS" -f$REPLY | sort -u  > opcoes.txt                    #se tiver filtros, queremos que todas as linhas sejam opções para o usuário
     else
-        cat "filter/f.csv" | tail -n +2 | cut -d"$IFS" -f"$REPLY" | sort -u  > opcoes.txt       #se nao tiver filtros, não queremos que a primeira linha seja uma opção para o usuário
+        cat "filter/f.csv" | tail -n +2 | cut -d"$IFS" -f$REPLY | sort -u  > opcoes.txt       #se nao tiver filtros, não queremos que a primeira linha seja uma opção para o usuário
     fi
 IFS='
 '
@@ -149,7 +159,11 @@ function interface_4 {
 function interface_5 {
 #essa funcao cria uma interface para o usuário escolher a coluna que deseja analisar. Depois disso, o número da coluna é passado para a funcao showcomplimentsrank
     echo "Escolha uma opção de coluna para análise:"
+    IFSOLD=$IFS                                                                              #salvo o valor de IFS em IFSOLD
+    IFS=';'                                                                                  #quero separar os itens por ";" entao altero IFS=';'
+    read -r -a COLUMNS < <(head -n 1 "dados/arquivocompleto.csv")
     select COLUMN in "${COLUMNS[@]}"; do
+    IFS=$IFSOLD
     showcomplimentsrank $REPLY "$COLUMN"
     interface_inicial
 
@@ -324,13 +338,12 @@ if [ $# -eq 1 ]; then
         for file in dados/*; do
             tail -n +2 "$file"
         done >> arquivocompleto.csv
-
         
         mv arquivocompleto.csv dados/
 
 
         createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
-        
+
         interface_inicial
 
     else 
@@ -349,8 +362,7 @@ elif [ $# -eq 0 ]; then
     if [ -e dados/arquivocompleto.csv ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
 
-       interface_inicial
-
+        interface_inicial
 
 
     else 
