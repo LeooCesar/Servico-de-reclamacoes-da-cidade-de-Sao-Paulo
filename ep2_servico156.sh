@@ -2,7 +2,7 @@
 #!/bin/bash
 
 OPTIONS=(selecionar_arquivo adicionar_filtro_coluna limpar_filtros_colunas mostrar_duracao_media_reclamacao mostrar_ranking_reclamacoes mostrar_reclamacoes sair)
-COLUMNS=("Data de abertura" Canal Tema Assunto Serviço Logradouro Número CEP Subprefeitura Distrito Latitude Longitude "Data do Parecer" "Status da solicitação" Orgão Data Nível "Prazo Atendimento" "Qualidade Atendimento" "Atendeu Solicitação")
+COLUMNS=(Data de abertura Canal Tema Assunto Serviço Logradouro Número CEP Subprefeitura Distrito Latitude Longitude "Data do Parecer" "Status da solicitação" Orgão Data Nível "Prazo Atendimento" "Qualidade Atendimento" "Atendeu Solicitação")
 
 #quando mudar de arquivo precisamos a zerar
 filterCount=0 #quantidade de filtro implementados
@@ -105,6 +105,7 @@ function interface_2 {
 #essa funcao cria uma interface com as opções de coluna para o filtro
 echo "Escolha uma opção de coluna para o filtro:"
 
+echo "${COLUMNS[@]}"
 select COLUMN in "${COLUMNS[@]}"; do
     IFSOLD=$IFS                                                                              #salvo o valor de IFS em IFSOLD
     IFS=';'                                                                                  #quero separar os itens por ";" entao altero IFS=';'
@@ -122,9 +123,9 @@ IFS='
     done
     echo ' '
     echo "Escolha uma opção de valor para "$COLUMN":"
+    IFS=$IFSOLD 
 
-    select filter in "${filters[@]}"; do            #select com os itens do vetor, os quais sao as opcoes de filtro
-        IFS=$IFSOLD                                 #recupero IFS para operações futuras
+    select filter in "${filters[@]}"; do            #select com os itens do vetor, os quais sao as opcoes de filtro                                 #recupero IFS para operações futuras
         setFilter "$filter" "$COLUMN"               #call da funcao setFilter passando os parâmetros necessários (filtro desejado e coluna na qual será aplicado)
         filters=()
         interface_inicial
