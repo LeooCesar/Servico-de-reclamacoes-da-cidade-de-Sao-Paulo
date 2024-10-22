@@ -191,7 +191,7 @@ function showcomplimentsrank {
     # s2 = nome da coluna
     IFSOLD=$IFS
     echo " "
-    echo "+++ $2 com mais reclamações:"    
+    echo "+++ $2 com mais reclamações:"
     local counter=1
     if [ ${#arrayfilters[*]} -gt 0 ]; then #se tem filtro quer dizer q a primeira linha nao representa as colunas
         local cd=$( cat filter/f.csv |  cut -d";" -f"$1" | sort | uniq -c | sort -n -r )    
@@ -313,8 +313,8 @@ function downloadFIles {
 
     rm -r dadostem
 
-
 }
+
 
 function main {
     makeHeader
@@ -324,14 +324,13 @@ if [ $# -eq 1 ]; then
     if [ -e $1 ]; then
         #se existir o arquido das urls 
 
-
+    
         downloadFIles $1 #BAIXA OS ARQUIVOS DAS URLS
 
         #concatena o conteudo de todos arquivos no arquivo compelto
         if [ -e dados/arquivocompleto.csv ]; then
             rm dados/arquivocompleto.csv
         fi
-
         #passo o cabeçalho para o arquivo completo
         echo "Data de abertura;Canal;Tema;Assunto;Serviço;Logradouro;Número;CEP;Subprefeitura;Distrito;Latitude;Longitude;Data do Parecer;Status da solicitação;Orgão;Data;Nível;Prazo Atendimento;Qualidade Atendimento;Atendeu Solicitação" > arquivocompleto.csv
         
@@ -364,6 +363,7 @@ elif [ $# -eq 0 ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
 
         interface_inicial
+
 
     else 
         echo "ERRO : Não há dados baixados"
