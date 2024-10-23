@@ -304,8 +304,12 @@ function downloadFIles {
     
     if [ ! -e dados/ ];then
         mkdir "dados"
+    else
+        rm -r dados #removo a pasta dados para a inserção de novos arquivos
+        mkdir "dados"
     fi
-    mkdir "dadostem"
+
+    mkdir "dadostem" #pasta temporaria para servir de base para a traducao dos arquivos para UTF-8
     cat $1 | parallel -k "wget -nv {} -P dadostem/" #baixa os arquivos e coloca na pasta data
     for file in $( ls dadostem); do
         iconv -f ISO-8859-1 -t UTF8 dadostem/$file -o dados/$file
@@ -331,8 +335,14 @@ if [ $# -eq 1 ]; then
         if [ -e dados/arquivocompleto.csv ]; then
             rm dados/arquivocompleto.csv
         fi
-        #passo o cabeçalho para o arquivo completo
-        echo "Data de abertura;Canal;Tema;Assunto;Serviço;Logradouro;Número;CEP;Subprefeitura;Distrito;Latitude;Longitude;Data do Parecer;Status da solicitação;Orgão;Data;Nível;Prazo Atendimento;Qualidade Atendimento;Atendeu Solicitação" > arquivocompleto.csv
+
+        for file in dados/*;do
+            #passo o cabeçalho para o arquivo completo
+            head -n 1 $file > arquivocompleto.csv
+            break
+        done
+
+
         
         #passa cada reclamação dos arquivos para o arquivocompleto
         for file in dados/*; do
