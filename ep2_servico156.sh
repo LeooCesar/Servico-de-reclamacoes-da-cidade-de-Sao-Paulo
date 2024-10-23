@@ -25,9 +25,9 @@ function createFilterData {
 
 if [ ! -e filter ]; then
 #essa funcao cria a pasta filter, se nao existir, e coloca o conteudo do actualFile no arquivo f.csv
+
     mkdir filter
 fi
-
 cp dados/$actualFile filter/f.csv
 
 
@@ -301,11 +301,11 @@ echo ' '
 function downloadFIles {
 #parametro : url do arquivo
 #essa funcao baixa os arquivos da url de entrada e faz a transformacao para utf-8
+    
     if [ ! -e dados/ ];then
         mkdir "dados"
     fi
     mkdir "dadostem"
-    
     cat $1 | parallel -k "wget -nv {} -P dadostem/" #baixa os arquivos e coloca na pasta data
     for file in $( ls dadostem); do
         iconv -f ISO-8859-1 -t UTF8 dadostem/$file -o dados/$file
@@ -342,8 +342,8 @@ if [ $# -eq 1 ]; then
         mv arquivocompleto.csv dados/
 
 
-        createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
 
+        createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
         interface_inicial
 
     else 
@@ -361,6 +361,8 @@ elif [ $# -eq 0 ]; then
 
     if [ -e dados/arquivocompleto.csv ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
+
+        createFilterData #att o arquivo de filtros para o arquivocompleto
 
         interface_inicial
 
