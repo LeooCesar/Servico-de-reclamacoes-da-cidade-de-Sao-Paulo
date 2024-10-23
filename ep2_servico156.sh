@@ -25,9 +25,9 @@ function createFilterData {
 
 if [ ! -e filter ]; then
 #essa funcao cria a pasta filter, se nao existir, e coloca o conteudo do actualFile no arquivo f.csv
+
     mkdir filter
 fi
-
 cp dados/$actualFile filter/f.csv
 
 
@@ -132,9 +132,9 @@ IFS='
     done
     echo ' '
     echo "Escolha uma opção de valor para "$COLUMN":"
+    IFS=$IFSOLD 
 
-    select filter in "${filters[@]}"; do            #select com os itens do vetor, os quais sao as opcoes de filtro
-        IFS=$IFSOLD                                 #recupero IFS para operações futuras
+    select filter in "${filters[@]}"; do            #select com os itens do vetor, os quais sao as opcoes de filtro                                 #recupero IFS para operações futuras
         setFilter "$filter" "$COLUMN"               #call da funcao setFilter passando os parâmetros necessários (filtro desejado e coluna na qual será aplicado)
         filters=()
         interface_inicial
@@ -301,11 +301,15 @@ echo ' '
 function downloadFIles {
 #parametro : url do arquivo
 #essa funcao baixa os arquivos da url de entrada e faz a transformacao para utf-8
+    
     if [ ! -e dados/ ];then
         mkdir "dados"
+    else
+        rm -r dados #removo a pasta dados para a inserção de novos arquivos
+        mkdir "dados"
     fi
-    mkdir "dadostem"
-    
+
+    mkdir "dadostem" #pasta temporaria para servir de base para a traducao dos arquivos para UTF-8
     cat $1 | parallel -k "wget -nv {} -P dadostem/" #baixa os arquivos e coloca na pasta data
     for file in $( ls dadostem); do
         iconv -f ISO-8859-1 -t UTF8 dadostem/$file -o dados/$file
@@ -331,8 +335,14 @@ if [ $# -eq 1 ]; then
         if [ -e dados/arquivocompleto.csv ]; then
             rm dados/arquivocompleto.csv
         fi
-        #passo o cabeçalho para o arquivo completo
-        echo "Data de abertura;Canal;Tema;Assunto;Serviço;Logradouro;Número;CEP;Subprefeitura;Distrito;Latitude;Longitude;Data do Parecer;Status da solicitação;Orgão;Data;Nível;Prazo Atendimento;Qualidade Atendimento;Atendeu Solicitação" > arquivocompleto.csv
+
+        for file in dados/*;do
+            #passo o cabeçalho para o arquivo completo
+            head -n 1 $file > arquivocompleto.csv
+            break
+        done
+
+
         
         #passa cada reclamação dos arquivos para o arquivocompleto
         for file in dados/*; do
@@ -342,8 +352,8 @@ if [ $# -eq 1 ]; then
         mv arquivocompleto.csv dados/
 
 
-        createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
 
+        createFilterData #CRIA A PASTA FILTER E O ARQUIVO F.CSV PARA A MANIPULACAO DOS FILTROS
         interface_inicial
 
     else 
@@ -361,6 +371,8 @@ elif [ $# -eq 0 ]; then
 
     if [ -e dados/arquivocompleto.csv ]; then
         #ENTRA AQUI SE EXISTE ARQUIVOS DA URLS JA BAIXADOS
+
+        createFilterData #att o arquivo de filtros para o arquivocompleto
 
         interface_inicial
 
