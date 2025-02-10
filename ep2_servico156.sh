@@ -5,10 +5,8 @@
 # EP2 - Programação em Bash
 #
 # Nome do(a) aluno(a) 1: Leonardo César da Silva Francisco 
-# NUSP 1: 15468897
 #
 # Nome do(a) aluno(a) 2: Nattan Ferreira da Silva
-# NUSP 2: 15520641
 ##################################################################
 
 OPTIONS=(selecionar_arquivo adicionar_filtro_coluna limpar_filtros_colunas mostrar_duracao_media_reclamacao mostrar_ranking_reclamacoes mostrar_reclamacoes sair)
